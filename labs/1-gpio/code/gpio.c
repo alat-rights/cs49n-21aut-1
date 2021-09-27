@@ -26,9 +26,14 @@ static volatile unsigned *gpio_clr0  = (void*)(GPIO_BASE + 0x28);
 //
 // note: fsel0, fsel1, fsel2 are contiguous in memory, so you
 // can (and should) use array calculations!
-void gpio_set_output(unsigned pin) {
-    // implement this
+void gpio_set_output(unsigned pin) {  // pin is GPIO # on Rpi
     // what is the address of fsel0?
+    unsigned addr = GPIO_BASE + pin / 10; // Calculate address based on pin
+    unsigned first_bit_location = ( pin % 10 ) * 3; // Where do we start writing?
+    unsigned bits_to_write = 0b001 >> first_bit_location; // looks like 000[...]001
+    unsigned bitmask = 0xFF & ~(0b111 >> first_bit_location); // 32 1s with three 0s where we want them
+
+    PUT32(addr, bits_to_write & bitmask);
 }
 
 // set GPIO <pin> on.
