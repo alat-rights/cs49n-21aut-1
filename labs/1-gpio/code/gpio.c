@@ -33,9 +33,9 @@ void gpio_set_output(unsigned pin) {  // pin is GPIO # on Rpi
     unsigned value = get32(addr); // Get 32 bits from the address
 
     unsigned first_bit_location = pin % 10 * 3; // Where do we start writing?
-    unsigned bits_to_write = 0b001 << first_bit_location; // looks like [001]000... Pg. 92: 001 = output
+    unsigned unary_bits_to_write = ~(0b001 << first_bit_location); // looks like [001]000... Pg. 92: 001 = output
 
-    put32(addr, bits_to_write | value);
+    put32(addr, ~(unary_bits_to_write & ~value));
 }
 
 // set GPIO <pin> on.
