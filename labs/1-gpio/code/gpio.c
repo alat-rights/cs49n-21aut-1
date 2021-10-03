@@ -33,9 +33,12 @@ void gpio_set_output(unsigned pin) {  // pin is GPIO # on Rpi
     unsigned value = get32(addr); // Get 32 bits from the address
 
     unsigned first_bit_location = pin % 10 * 3; // Where do we start writing?
-    unsigned unary_bits_to_write = ~(0b001 << first_bit_location); // looks like [001]000... Pg. 92: 001 = output
+    unsigned bitmask = 0b111 << first_bit_location;
 
-    put32(addr, ~(unary_bits_to_write & ~value));
+    unsigned masked_value = ~( ~value | bitmask );
+    unsigned bits_to_write = 0b001 << first_bit_location; // looks like [001]000... Pg. 92: 001 = output
+
+    put32(addr, bits_to_write | masked_value);
 }
 
 // set GPIO <pin> on.
@@ -72,10 +75,9 @@ void gpio_set_input(unsigned pin) {
     unsigned value = get32(addr); // Get 32 bits from the address
 
     unsigned first_bit_location = (pin % 10) * 3; // Where do we start writing?
-    unsigned bits_to_write = 0b000 << first_bit_location; // looks like [001]000... Pg. 92: 000 = input 
+    unsigned bitmask = 0b111 << first_bit_location;
 
-    put32(addr, bits_to_write);
-    // put32(addr, bits_to_write | value);
+    put32(addr, ~(bitmask & ~value));
 }
 
 // return the value of <pin>
