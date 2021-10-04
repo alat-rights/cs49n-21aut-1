@@ -4,12 +4,13 @@
 
 MAKEFLAGS += --no-print-directory
 
-# to make the second batch of tests
-TEST_SRC := $(wildcard ./[2]-*.c) 
 # to make the first batch of tests.
 # to make everything.
 TEST_SRC := $(wildcard ./*.c) 
 TEST_SRC := $(wildcard ./[1]-*.c) 
+# to make the second batch of tests
+TEST_SRC := $(wildcard ./[2]-*.c) 
+TEST_SRC := $(wildcard ./[5]-*.c) 
 
 # make them local to this directory
 OBJS := $(patsubst %.c, %.o, $(TEST_SRC))
