@@ -8,6 +8,7 @@ void notmain(void) {
 
     gpio_set_output(led);
     gpio_set_input(input);
+
     while (1) {
         // could also do:
         //  gpio_write(input, gpio_read(led));

@@ -14,6 +14,17 @@
 
 #include <stdint.h> // uint32_t
 
+typedef enum {
+    GPIO_FUNC_INPUT   = 0,
+    GPIO_FUNC_OUTPUT  = 1,
+    GPIO_FUNC_ALT0    = 4,
+    GPIO_FUNC_ALT1    = 5,
+    GPIO_FUNC_ALT2    = 6,
+    GPIO_FUNC_ALT3    = 7,
+    GPIO_FUNC_ALT4    = 3,
+    GPIO_FUNC_ALT5    = 2,
+} gpio_func_t;
+
 // used to write device memory: do not use a raw store.
 // writes the 32-bit value <v> to address <addr>:   
 //     *(uint32_t *)addr = v;

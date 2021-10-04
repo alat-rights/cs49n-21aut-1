@@ -28,38 +28,34 @@ static volatile unsigned *gpio_clr0  = (void*)(GPIO_BASE + 0x28);
 // note: fsel0, fsel1, fsel2 are contiguous in memory, so you
 // can (and should) use array calculations!
 void gpio_set_output(unsigned pin) {  // pin is GPIO # on Rpi
-    if (pin >= 32)
-        return;
-
     // what is the address of fsel0?
-    volatile unsigned *addr = gpio_fsel0 + pin / 10; // Contiguous 32-bit regions
+    volatile unsigned *addr = gpio_fsel0 + pin / 10; // Calculate address based on pin
     unsigned value = get32(addr); // Get 32 bits from the address
 
-    unsigned first_bit_location = pin % 10 * 3; // Where do we start writing?
-    unsigned bitmask = 0b111 << first_bit_location;
-
-    unsigned masked_value = ~( ~value | bitmask );
+    unsigned first_bit_location = ( pin % 10 ) * 3; // Where do we start writing?
     unsigned bits_to_write = 0b001 << first_bit_location; // looks like [001]000... Pg. 92: 001 = output
 
-    put32(addr, bits_to_write | masked_value);
+    put32(addr, bits_to_write | value);
 }
 
 // set GPIO <pin> on.
 void gpio_set_on(unsigned pin) {
+    // implement this
     // use <gpio_set0>
-    volatile unsigned *addr = gpio_set0;
-    if (pin >= 32)
-        return;
-    put32(addr, 1 << pin);
+    volatile unsigned *addr = gpio_set0 + pin;
+    unsigned value = get32(addr);
+
+    put32(addr, value | (1 << pin));
 }
 
 // set GPIO <pin> off
 void gpio_set_off(unsigned pin) {
+    // implement this
     // use <gpio_clr0>
-    volatile unsigned *addr = gpio_clr0;
-    if (pin >= 32)
-        return;
-    put32(addr, 1 << pin);
+    volatile unsigned *addr = gpio_clr0 + pin;
+    unsigned value = get32(addr);
+
+    put32(addr, value | (1 << pin));
 }
 
 // set <pin> to <v> (v \in {0,1})
@@ -76,42 +72,24 @@ void gpio_write(unsigned pin, unsigned v) {
 
 // set <pin> to input.
 void gpio_set_input(unsigned pin) {
-    if (pin >= 32)
-        return;
-    volatile unsigned *addr = gpio_fsel0 + pin / 10;
-    unsigned value = get32(addr); // get 32 bits from the address
+    // implement.
+    // Almost certainly broken as-is
+    // volatile unsigned *addr = gpio_fsel0 + pin / 10; // Calculate address based on pin
+    // unsigned first_bit_location = ( pin % 10 ) * 3; // Where do we start writing?
+    // unsigned bits_to_write = 0b000 << first_bit_location; // looks like 000[...]001
+    // unsigned bitmask = get32(addr) & ~(0b111 << first_bit_location); // 32 1s with three 0s where we want them
 
-    unsigned first_bit_location = pin % 10 * 3; // where do we start writing?
-    unsigned bitmask = 0b111 << first_bit_location;
-
-    unsigned masked_value = ~( ~value | bitmask );
-
-    put32(addr, masked_value);
+    // put(addr, bits_to_write & bitmask);
 }
 
 // return the value of <pin>
 int gpio_read(unsigned pin) {
-    if (pin >= 32)
-        return -1;
-    unsigned v = 0;
-    volatile unsigned *addr = (void *)(GPIO_BASE + 0x34);
-    unsigned bits = get32(addr);
-    unsigned bitmask = 0b1 << pin;
-    v = ((bits & bitmask) > 0b0);
-    return v;
-}
-
-void gpio_set_function(unsigned pin, gpio_func_t function) {
-    if (pin >= 32)
-        return;
-    volatile unsigned *addr = gpio_fsel0 + pin / 10;
-    unsigned value = get32(addr); // get 32 bits from the address
-
-    unsigned first_bit_location = pin % 10 * 3; // where do we start writing?
-    unsigned bitmask = 0b111 << first_bit_location;
-
-    unsigned masked_value = ~( ~value | bitmask );
-
-    put32(addr, function << first_bit_location | masked_value);
-
+    // unsigned v = 0;
+    // implement.
+    // Almost certainly broken as-is
+    // unsigned *addr = GPIO_BASE + 0x34;
+    // unsigned bits = GET32(*addr);
+    // unsigned bitmask = ~0xFF | 0b1 << pin;
+    // return (bits & bitmask) > 0b0;
+    return 0;
 }
