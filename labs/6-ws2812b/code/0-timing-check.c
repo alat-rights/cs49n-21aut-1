@@ -56,6 +56,7 @@ time_check(const char *fn, int pin, void (*fp)(unsigned), int exp) {
 	// wtf, why so high?
     int tol = 20;
 	printk("%s: expected %u cycles, got %u cycles\n", fn, exp, t);
+        printk("%u, %u, %u\n", t, exp, tol);
 	assert(t <= (exp + tol) && t >= (exp - tol));
 }
 

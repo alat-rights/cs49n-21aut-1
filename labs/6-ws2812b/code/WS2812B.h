@@ -74,11 +74,11 @@
     // can flip between.
     enum { 
         // to send a 1: set pin high for T1H ns, then low for T0H ns.
-        T1H = ns_to_cycles(0),        // Width of a 1 bit in ns
-        T0H = ns_to_cycles(0),        // Width of a 0 bit in ns
+        T1H = ns_to_cycles(900),        // Width of a 1 bit in ns
+        T0H = ns_to_cycles(350),        // Width of a 0 bit in ns
         // to send a 0: set pin high for T1L ns, then low for T0L ns.
-        T1L = ns_to_cycles(0),        // Width of a 1 bit in ns
-        T0L = ns_to_cycles(0),        // Width of a 0 bit in ns
+        T1L = ns_to_cycles(350),        // Width of a 1 bit in ns
+        T0L = ns_to_cycles(900),        // Width of a 0 bit in ns
 
         // to make the LED switch to the new values, old the pin low for FLUSH ns
         FLUSH = ns_to_cycles(50 *1000)    // how long to hold low to flush
@@ -113,15 +113,20 @@
 // duplicate set_on/off so we can inline to reduce overhead.
 // they have to run in < the delay we are shooting for.
 static inline void gpio_set_on_raw(unsigned pin) {
-    unimplemented();
+    unsigned *addr = (void*)(0x20200000 + 0x1C);
+    *addr = (1 << pin);
 }
 static inline void gpio_set_off_raw(unsigned pin) {
-    unimplemented();
+    unsigned *addr = (void*)(0x20200000 + 0x28);
+    *addr = (1 << pin);
 }
 
 // use cycle_cnt_read() to delay <n_cyc> cycles measured from <start_cyc>
 static inline void delay_ncycles(unsigned start_cyc, unsigned n_cyc) {
-    unimplemented();
+    n_cyc -= 3;
+    while (cycle_cnt_read() - start_cyc <= n_cyc) {
+        ;
+    }
 }
 
 
@@ -146,37 +151,40 @@ static unsigned const compensation = 16;
 // write 1 for <ncycles>: since reading the cycle counter itself takes cycles
 // you may need to add a constant to correct for this.
 static inline void write_1(unsigned pin, unsigned ncycles) {
-    // use gpio_set_on_raw
-    unimplemented();
+    unsigned start_cycle = cycle_cnt_read();
+    unsigned m = ncycles - compensation;
+    gpio_set_on_raw(pin);
+    delay_ncycles(start_cycle, m);
 }
 
 // write 0 for <ncycles>: since reading the cycle counter takes cycles you
 // may need to add a constant to correct for it.
 static inline void write_0(unsigned pin, unsigned ncycles) {
-    // use gpio_set_off_raw
-    unimplemented();
+    unsigned start_cycle = cycle_cnt_read();
+    unsigned m = ncycles - compensation;
+    gpio_set_off_raw(pin);
+    delay_ncycles(start_cycle, m);
 }
 
 // implement T1H from the datasheet (call write_1 with the right delay)
 static inline void t1h(unsigned pin) {
-    unimplemented();
+    write_1(pin, T1H);
 }
-
 // implement T0H from the datasheet (call write_0 with the right delay)
 static inline void t0h(unsigned pin) {
-    unimplemented();
+    write_0(pin, T0H);
 }
 // implement T1L from the datasheet.
 static inline void t1l(unsigned pin) {
-    unimplemented();
+    write_1(pin, T1L);
 }
 // implement T0L from the datasheed.
 static inline void t0l(unsigned pin) {
-    unimplemented();
+    write_0(pin, T0L);
 }
 // implement RESET from the datasheet.
 static inline void treset(unsigned pin) {
-    unimplemented();
+    write_0(pin, FLUSH);
 }
 
 /***********************************************************************************

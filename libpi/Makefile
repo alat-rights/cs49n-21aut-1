@@ -7,14 +7,16 @@
 # for example if you want to add your gpio.c, 
 #   1. copy gpio.c to src/gpio.c
 #   2. define SRC as:
-#           SRC := ./src/gpio.c
+SRC := ./src/gpio.c \
+       ./src/hr-sr04.c \
+       ./src/kmalloc.c	
 #
 # tip: if you want to automatically add all .S and .c files 
 # in src/ do:
 #   SRC := $(wildcard ./src/*.[Sc])
 #
 # currently not defined to hold anything
-SRC :=
+# SRC :=
 
 # if you want to use our gpio.o or other .o (e.g., if yours
 # is acting weird):
@@ -23,8 +25,7 @@ SRC :=
 #
 #
 # currently: use our uart.o (for printk) and gpio.o
-STAFF_OBJS  :=  ./staff-objs/gpio.o     \
-                ./staff-objs/uart.o     \
+STAFF_OBJS  :=  ./staff-objs/uart.o     \
                 ./staff-objs/gpio-pud.o     \
                 ./staff-objs/gpio-int.o 
 

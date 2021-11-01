@@ -1,0 +1,2 @@
+TRACE:TRACE: setting malloc start to 1mb
+TRACE:PANIC:kmalloc.c:kmalloc_heap_ptr:120:implement this function!
