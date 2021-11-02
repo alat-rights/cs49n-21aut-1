@@ -198,7 +198,14 @@ static inline void pix_flush(unsigned pin) {
 
 // transmit a {0,1} bit to the ws2812b
 static inline void pix_sendbit(unsigned pin, uint8_t b) {
-    unimplemented();
+    switch(b) {
+        case 0:
+            t0h(pin);
+            t0l(pin);
+        case 1:
+            t1h(pin);
+            t1l(pin);
+    }
 }
 
 // use pix_sendbit to send byte <b>
@@ -207,7 +214,10 @@ static inline void pix_sendbit(unsigned pin, uint8_t b) {
 // becomes huge: unclear if better.  if you decide to inline it, make sure you run
 // tests before and after.  
 static void pix_sendbyte(unsigned pin, uint8_t b) {
-    unimplemented();
+    for (int i = 0; i < 8; i++) {
+        pix_sendbit(pin, b & 0 << (7 - i));
+        b <<= 1;
+    }
 }
 
 // use pix_sendbyte to send bytes [<r> red, <g> green, <b> blue out on pin <pin>.
@@ -216,6 +226,9 @@ static inline void pix_sendpixel(unsigned pin, uint8_t r, uint8_t g, uint8_t b) 
     // delay between the send bytes --- when you optimize it's possible you need 
     // to trim the delays you use.
     // use pix_sendbyte to send <r>, <g> <b>
-    unimplemented();
+
+    pix_sendbyte(pin, b);
+    pix_sendbyte(pin, g);
+    pix_sendbyte(pin, r);
 }
 #endif
