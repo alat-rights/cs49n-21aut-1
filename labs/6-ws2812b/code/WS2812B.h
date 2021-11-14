@@ -81,7 +81,7 @@
         T0L = ns_to_cycles(900),        // Width of a 0 bit in ns
 
         // to make the LED switch to the new values, old the pin low for FLUSH ns
-        FLUSH = ns_to_cycles(50 *1000)    // how long to hold low to flush
+        FLUSH = ns_to_cycles(50 * 1000)    // how long to hold low to flush
     };
 
 #else
@@ -113,18 +113,20 @@
 // duplicate set_on/off so we can inline to reduce overhead.
 // they have to run in < the delay we are shooting for.
 static inline void gpio_set_on_raw(unsigned pin) {
-    unsigned *addr = (void*)(0x20200000 + 0x1C);
+    volatile uint32_t *addr = (volatile uint32_t *)(0x20200000 + 0x1C);
     *addr = (1 << pin);
 }
 static inline void gpio_set_off_raw(unsigned pin) {
-    unsigned *addr = (void*)(0x20200000 + 0x28);
+    volatile uint32_t *addr = (volatile uint32_t *)(0x20200000 + 0x28);
     *addr = (1 << pin);
 }
 
 // use cycle_cnt_read() to delay <n_cyc> cycles measured from <start_cyc>
 static inline void delay_ncycles(unsigned start_cyc, unsigned n_cyc) {
-    n_cyc -= 3;
-    while (cycle_cnt_read() - start_cyc <= n_cyc) {
+    if (n_cyc < 40) {  // Sacrilege
+        start_cyc -= 3;
+    }
+    while (cycle_cnt_read() - start_cyc < n_cyc) {
         ;
     }
 }
@@ -172,11 +174,11 @@ static inline void t1h(unsigned pin) {
 }
 // implement T0H from the datasheet (call write_0 with the right delay)
 static inline void t0h(unsigned pin) {
-    write_0(pin, T0H);
+    write_1(pin, T0H);
 }
 // implement T1L from the datasheet.
 static inline void t1l(unsigned pin) {
-    write_1(pin, T1L);
+    write_0(pin, T1L);
 }
 // implement T0L from the datasheed.
 static inline void t0l(unsigned pin) {
@@ -184,6 +186,7 @@ static inline void t0l(unsigned pin) {
 }
 // implement RESET from the datasheet.
 static inline void treset(unsigned pin) {
+    // printk("FLUSH\n");
     write_0(pin, FLUSH);
 }
 
@@ -198,13 +201,15 @@ static inline void pix_flush(unsigned pin) {
 
 // transmit a {0,1} bit to the ws2812b
 static inline void pix_sendbit(unsigned pin, uint8_t b) {
-    switch(b) {
-        case 0:
-            t0h(pin);
-            t0l(pin);
-        case 1:
-            t1h(pin);
-            t1l(pin);
+    if (b == 0) {
+        // printk("\t\tSetting 0 bit\n");
+        t0h(pin);
+        t0l(pin);
+    }
+    else {
+        // printk("\t\tSetting 1 bit\n");
+        t1h(pin);
+        t1l(pin);
     }
 }
 
@@ -214,9 +219,14 @@ static inline void pix_sendbit(unsigned pin, uint8_t b) {
 // becomes huge: unclear if better.  if you decide to inline it, make sure you run
 // tests before and after.  
 static void pix_sendbyte(unsigned pin, uint8_t b) {
-    for (int i = 0; i < 8; i++) {
-        pix_sendbit(pin, b & 0 << (7 - i));
-        b <<= 1;
+    // printk("\tSending byte %b\n", b);
+    int mask = 0b1;
+    mask <<= 7;
+    for (int i = 0; i <= 7; i++) {
+        // printk("\tsending = %b\n", b & mask);
+        // printk("%b\n", mask);
+        pix_sendbit(pin, b & mask);
+        mask >>= 1;
     }
 }
 
@@ -226,9 +236,11 @@ static inline void pix_sendpixel(unsigned pin, uint8_t r, uint8_t g, uint8_t b) 
     // delay between the send bytes --- when you optimize it's possible you need 
     // to trim the delays you use.
     // use pix_sendbyte to send <r>, <g> <b>
+    
+    // printk("We have r: %d, g: %d, b: %d\n", r, g, b);
 
-    pix_sendbyte(pin, b);
     pix_sendbyte(pin, g);
     pix_sendbyte(pin, r);
+    pix_sendbyte(pin, b);
 }
 #endif
